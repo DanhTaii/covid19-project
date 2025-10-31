@@ -17,6 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from django.urls import path, include
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include('covid_app.urls')),  # thêm dòng này để kết nối tới app covid_app
 ]
