@@ -4,9 +4,9 @@ import CoronavirusIcon from '@mui/icons-material/Coronavirus';
 
 export default function Header() {
   return (
-      <header class="web__header">
-        <div class="grid">
-            <div class="header__box">
+      <header className="web__header">
+        <div className="grid">
+            <div className="header__box">
                 <CoronavirusIcon sx={{ mr: 2, fontSize: 40, color: 'white' }} />
                   <div className='header__browse'>
                     <div className='browse__text text-small-title'>
