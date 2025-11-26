@@ -10,7 +10,7 @@ export default function Home() {
       <Typography variant="h6" color="text.secondary" paragraph>
         Phân tích dữ liệu & dự đoán dịch bệnh bằng Prophet
       </Typography>
-      <Button component={Link} to="/visualization" variant="contained" size="large" sx={{ mt: 4 }}>
+      <Button component={Link} to="/overview" variant="contained" size="large" sx={{ mt: 4 }}>
         Vào Dashboard ngay
       </Button>
     </Container>
