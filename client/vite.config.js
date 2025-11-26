@@ -13,7 +13,13 @@ export default defineConfig({
       "@components": path.resolve(__dirname, "./src/components"),
       "@pages": path.resolve(__dirname, "./src/pages"),
       "@services": path.resolve(__dirname, "./src/services"),
-      stream: path.resolve(__dirname, 'node_modules/stream-browserify/index.js'),
+      // stream: path.resolve(__dirname, 'node_modules/stream-browserify/index.js'),
+
+      stream: 'stream-browserify',
+      buffer: 'buffer',
+      util: 'util',
+      process: 'process/browser',
+      zlib: 'browserify-zlib',
     }
   },
   define: {
@@ -31,6 +37,9 @@ export default defineConfig({
         changeOrigin: true,
       },
     }
+  },
+define: {
+    global: 'window', // <-- Đây là giải pháp cho lỗi ReferenceError: global is not defined
   },
   
 })
