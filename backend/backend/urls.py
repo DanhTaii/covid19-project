@@ -19,7 +19,12 @@ from django.urls import path
 
 from django.urls import path, include
 
+# Đường dẫn chung cho các app
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('covid_app.urls')),  # thêm dòng này để kết nối tới app covid_app
+    path('api/core/', include('core.urls')),
+    path('api/analysis/', include('analysis.urls')),
+    path('api/forecast/', include('forecast.urls')),
+    path('api/chatbot/', include('chatbot.urls')),
+    path('api/visualization/', include('visualization.urls')),
 ]
