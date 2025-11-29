@@ -29,7 +29,7 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
-
+# Khai báo các app sẽ có trong đường dẫn URL
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -39,7 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    'covid_app',
+    'core',
+    'analysis',
+    'visualization',
+    'forecast',
+    'chatbot',
 ]
 
 MIDDLEWARE = [

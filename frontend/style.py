@@ -17,16 +17,15 @@ def set_custom_css():
     /* Đổi màu nền chính (main content) */
     .main .block-container {
         background-color: #f8fafc;
-        padding-top: 2rem;
     }
 
-    # /* Đổi màu tiêu đề */
-    # h1, h2, h3 {
-    #     color: #FFFFFF;
-    # }
+    /* Đổi màu tiêu đề */
+    h1, h2, h3 {
+        color: #FFFFFF;
+    }
 
-    # /* Ẩn header Streamlit mặc định */
-    # #MainMenu {visibility: hidden;}
-    # footer {visibility: hidden;}
-    # </style>
+    /* Ẩn header Streamlit mặc định */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    </style>
     # """, unsafe_allow_html=True)
