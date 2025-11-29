@@ -1,1 +1,2 @@
+*.csv filter=lfs diff=lfs merge=lfs -text
 backend/core/data/owid-covid-data.csv !text !filter !merge !diff
