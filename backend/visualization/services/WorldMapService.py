@@ -6,13 +6,9 @@ from django.conf import settings
 class OverViewController:
     def __init__(self, parquet_path: str):
         self.df = pd.read_parquet(parquet_path)
-
-        # Chuẩn hóa cột date
         if "date" in self.df.columns:
             self.df["date"] = pd.to_datetime(self.df["date"], errors="coerce")
 
-    # hiển thị bản đồ thế giới theo chế độ
-    # mặc định là chế độ ca nhiễm
     def world_map(self, mode: str = "cases"):
         if mode == "deaths":
             value_col = "total_deaths"
@@ -23,10 +19,8 @@ class OverViewController:
             title = "Total COVID-19 Cases by Country"
             color_scale = "Reds"
 
-        # Tính tổng theo quốc gia
         df_total = self.df.groupby("location", as_index=False)[value_col].max()
 
-        # Vẽ bản đồ
         fig = px.choropleth(
             df_total,
             locations="location",
@@ -39,16 +33,25 @@ class OverViewController:
         fig.update_layout(margin={"r":0,"t":40,"l":0,"b":0})
         return fig
 
+    def global_trends(self):
+        df_global = self.df.groupby("date", as_index=False)[["total_cases", "total_deaths"]].sum()
+        return {
+            "dates": df_global["date"].dt.strftime("%Y-%m-%d").tolist(),
+            "cases": df_global["total_cases"].fillna(0).astype(int).tolist(),
+            "deaths": df_global["total_deaths"].fillna(0).astype(int).tolist(),
+        }
 
 def get_world_map_data(mode: str = "cases"):
     parquet_path = os.path.join(settings.BASE_DIR, "core", "data", "cleaned_covid_data.parquet")
-    df = pd.read_parquet(parquet_path)
+    controller = OverViewController(parquet_path)
 
-        # Chuẩn hóa cột date (giữ nguyên code của bạn)
+    if mode not in ["cases", "deaths"]:
+        mode = "cases"
+
+    df = pd.read_parquet(parquet_path)
     if "date" in df.columns:
         df["date"] = pd.to_datetime(df["date"], errors="coerce")
 
-        # Xử lý theo mode (giữ nguyên logic của bạn)
     if mode == "deaths":
         value_col = "total_deaths"
         title = "Total COVID-19 Deaths by Country"
@@ -56,13 +59,12 @@ def get_world_map_data(mode: str = "cases"):
         value_col = "total_cases"
         title = "Total COVID-19 Cases by Country"
 
-        # Tính tổng theo quốc gia (giữ nguyên code của bạn)
     df_total = df.groupby("location", as_index=False)[value_col].max()
 
-        # Trả về dữ liệu dạng dict – giống hệt cái WorldMapAPIView cũ
     return {
-            "title": title,
-            "locations": df_total["location"].tolist(),
-            "values": df_total[value_col].fillna(0).round(0).astype(int).tolist(),
-            "mode": mode,
+        "title": title,
+        "locations": df_total["location"].tolist(),
+        "values": df_total[value_col].fillna(0).round(0).astype(int).tolist(),
+        "mode": mode,
+        "global_trends": controller.global_trends()  # ✅ thêm dòng này để frontend dùng
     }

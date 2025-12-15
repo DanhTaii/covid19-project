@@ -23,7 +23,7 @@ class CovidVisualizerOO:
         return sorted(self.df["location"].dropna().unique())
 
     # lấy dữ liệu của quốc gia đó
-    def filter_country(self, country: str) -> pd.DataFrame:
+    def filter_country(self, country: str):
         return self.df[self.df["location"] == country]
 
     # vẽ biểu đồ số ca nhiễm
