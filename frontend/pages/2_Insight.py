@@ -41,7 +41,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==================== CẤU HÌNH API ====================
-# Đảm bảo URL này khớp với urls.py của bạn
 API_BASE = "http://localhost:8000/api/analysis"
 
 
