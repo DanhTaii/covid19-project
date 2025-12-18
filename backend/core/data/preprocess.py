@@ -54,9 +54,8 @@ def preprocess_and_save():
 
     size_mb = CLEANED_PARQUET.stat().st_size // 1024 // 1024
     print(f"HOÀN TẤT!")
-    print(f"   → {CLEANED_PARQUET.name} ({size_mb} MB)")
 
 
 if __name__ == "__main__":
-    download_latest()
+    # download_latest()
     preprocess_and_save()
