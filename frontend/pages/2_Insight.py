@@ -105,7 +105,43 @@ selected_country = st.sidebar.selectbox(
 st.sidebar.info(f"Đang xem dữ liệu: **{selected_country}**")
 
 # ==================== TABS ====================
-tab_insight3, tab_insight4 = st.tabs(["🗺️ Insight 3: Mức Độ Nghiêm Trọng", "🧬 Insight 4: Yếu Tố Rủi Ro"])
+tab_insight1, tab_insight3, tab_insight4 = st.tabs([
+    "📊 Insight 1: Tổng quan Quốc gia",
+    "🗺️ Insight 3: Mức Độ Nghiêm Trọng",
+    "🧬 Insight 4: Yếu Tố Rủi Ro"
+])
+
+# ==============================================================================
+#                               INSIGHT 1 LOGIC
+# ==============================================================================
+with tab_insight1:
+    st.subheader(f"📊 Tổng quan COVID-19 tại: {selected_country}")
+
+    api_insight1_url = f"{API_BASE}/country-overview/"
+    params = {"location": selected_country}
+    res_data = fetch_data(api_insight1_url, params=params)
+
+    if res_data and 'data' in res_data:
+        summary = res_data['data']  # <--- THÊM DÒNG NÀY
+    elif res_data:  # nếu backend trả thẳng dict (không bọc data)
+        summary = res_data
+    else:
+        summary = None
+
+    if summary:
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            st.metric("Tổng ca nhiễm", f"{summary.get('total_cases', 0):,}")
+        with col2:
+            st.metric("Tổng ca tử vong", f"{summary.get('total_deaths', 0):,}")
+        with col3:
+            st.metric("Tỉ lệ tử vong", f"{summary.get('mortality_rate', 0):.2f} %")
+        with col4:
+            st.metric("Tỉ lệ tiêm chủng", f"{summary.get('vaccination_rate', 0):.2f} %")
+    else:
+        st.warning(f"Không có dữ liệu cho {selected_country}")
+
 
 # ==============================================================================
 #                               INSIGHT 3 LOGIC

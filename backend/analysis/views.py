@@ -1,9 +1,13 @@
 from django.shortcuts import render
 from rest_framework import status
+import pandas as pd
+import os
+from django.conf import settings
 
 # Create your views here.
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from analysis.services.SummaryService import SummaryService
 from analysis.services.FactorCorrelationService import FactorCorrelationService
 from analysis.services.MortalityRatioService import MortalityRatioService
 
@@ -21,6 +25,65 @@ class FullDataView(APIView):
         df = pd.read_csv("owid-covid-data.csv")  # hoặc từ DB
         # preprocessing cơ bản: fillna(0) cho các cột số, v.v.
         return Response(df.to_dict(orient='records'), safe=False)
+
+
+class CountryOverviewAPIView(APIView):
+    """
+    [Insight 1]
+    API trả về tổng quan cho 1 quốc gia:
+    - Tổng ca nhiễm
+    - Tổng ca tử vong
+    - Tỉ lệ tử vong (%)
+    - Tỉ lệ tiêm chủng (%)
+    Endpoint: /api/analysis/country-overview/?location=Vietnam
+    """
+
+    def get(self, request):
+        # 1. Lấy location
+        location = request.query_params.get("location")
+
+        # 2. Validate
+        if not location:
+            return Response(
+                {
+                    "message": "Chưa chọn quốc gia",
+                    "data": None
+                },
+                status=status.HTTP_200_OK
+            )
+
+        # 3. Gọi service
+        try:
+            service = SummaryService()
+            data = service.get_country_summary(location)
+
+            # Nếu service trả rỗng
+            if not data:
+                return Response(
+                    {
+                        "message": f"Không có dữ liệu cho {location}",
+                        "data": None
+                    },
+                    status=status.HTTP_200_OK
+                )
+
+            return Response(
+                {
+                    "message": "OK",
+                    "data": data
+                },
+                status=status.HTTP_200_OK
+            )
+
+        except Exception as e:
+            print(f"Lỗi CountryOverviewAPIView: {e}")
+            return Response(
+                {
+                    "message": "Lỗi xử lý dữ liệu",
+                    "error": str(e)
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class WorldMapAPIView(APIView):

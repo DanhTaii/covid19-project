@@ -66,5 +66,5 @@ def get_world_map_data(mode: str = "cases"):
         "locations": df_total["location"].tolist(),
         "values": df_total[value_col].fillna(0).round(0).astype(int).tolist(),
         "mode": mode,
-        "global_trends": controller.global_trends()  # ✅ thêm dòng này để frontend dùng
+        "global_trends": controller.global_trends()
     }
