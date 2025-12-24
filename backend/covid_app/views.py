@@ -1,9 +1,10 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import status
 import pandas as pd
 import os
 from django.conf import settings
+import logging
 
 class ForecastAPIView(APIView):
     def get(self, request):
@@ -27,32 +28,52 @@ class OverviewAPIView(APIView):
         return Response({})
 
 
+logger = logging.getLogger(__name__)
+
+
 class WorldMapAPIView(APIView):
     def get(self, request):
-        mode = request.query_params.get('mode', 'cases')  # ?mode=cases hoặc deaths
+        print("\n" + "*"*100)
+        print("*** CODE MỚI NHẤT ĐÃ CHẠY - TOP10 SẼ HIỆN NGAY ***")
+        print("*"*100 + "\n")
 
-        parquet_path = os.path.join(settings.BASE_DIR, "covid_app", "data", "cleaned_covid_data.parquet")
-        df = pd.read_parquet(parquet_path)
+        mode = request.query_params.get('mode', 'cases').lower()
 
-        if "date" in df.columns:
-            df["date"] = pd.to_datetime(df["date"], errors="coerce")
+        parquet_path = os.path.join(settings.BASE_DIR, "core", "data", "cleaned_covid_data.parquet")
+        try:
+            df = pd.read_parquet(parquet_path)
+        except Exception as e:
+            return Response({"error": "Lỗi đọc file"}, status=500)
 
-        if mode == "deaths":
-            value_col = "total_deaths"
-            title = "Total COVID-19 Deaths by Country"
-        else:
-            value_col = "total_cases"
-            title = "Total COVID-19 Cases by Country"
+        df["date"] = pd.to_datetime(df["date"], errors="coerce")
 
-        # Gom nhóm theo quốc gia, lấy giá trị lớn nhất (mới nhất)
-        df_total = df.groupby("location", as_index=False)[value_col].max()
+        # Loại bỏ non-country
+        exclude = ["World", "Europe", "European Union", "High income", "Low income", "Upper middle income", "Lower middle income", "Asia", "Africa", "North America", "South America", "Oceania", "International"]
+        df = df[~df["location"].isin(exclude)]
 
-        # Chuẩn bị dữ liệu cho Plotly (React sẽ nhận đúng định dạng này)
-        data = {
-            "title": title,
-            "locations": df_total["location"].tolist(),
-            "values": df_total[value_col].fillna(0).round(0).astype(int).tolist(),
-            "mode": mode
+        value_col = "total_deaths" if mode == "deaths" else "total_cases"
+        map_title = "Tổng số ca tử vong COVID-19 theo quốc gia" if mode == "deaths" else "Tổng số ca nhiễm COVID-19 theo quốc gia"
+        top_title = "Top 10 quốc gia có nhiều ca tử vong nhất" if mode == "deaths" else "Top 10 quốc gia có nhiều ca nhiễm nhất"
+
+        df_map = df.groupby("location")[value_col].max().reset_index().dropna(subset=[value_col])
+
+        df_top10 = df_map.sort_values(value_col, ascending=False).head(10)
+
+        response_data = {
+            "title": map_title,
+            "locations": df_map["location"].tolist(),
+            "values": df_map[value_col].fillna(0).astype(int).tolist(),
+            "global_trends": {  # Global trend sum từ countries
+                "dates": df.groupby("date")["total_cases"].sum().index.strftime("%Y-%m-%d").tolist(),
+                "cases": df.groupby("date")["total_cases"].sum().fillna(0).astype(int).tolist(),
+                "deaths": df.groupby("date")["total_deaths"].sum().fillna(0).astype(int).tolist(),
+            },
+            "top10": {
+                "title": top_title,
+                "countries": df_top10["location"].tolist(),
+                "values": df_top10[value_col].fillna(0).astype(int).tolist()
+            }
         }
 
-        return Response(data)
+        print("TOP 1:", df_top10.iloc[0]["location"] if not df_top10.empty else "RỖNG")
+        return Response(response_data)
