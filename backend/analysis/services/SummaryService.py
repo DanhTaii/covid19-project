@@ -2,19 +2,7 @@ import pandas as pd
 from pathlib import Path
 from typing import Optional, Dict, Any
 
-# Đường dẫn chung
-CLEANED_PARQUET = Path(__file__).parent.parent.parent / "core" / "data" / "cleaned_covid_data.parquet"
-
-
-def load_data_from_parquet() -> pd.DataFrame:
-    if not CLEANED_PARQUET.exists():
-        raise FileNotFoundError(f"Lỗi: Không tìm thấy file {CLEANED_PARQUET}. Vui lòng chạy preprocess.py trước.")
-    return pd.read_parquet(CLEANED_PARQUET)
-
-
-def get_latest_data(df: pd.DataFrame) -> pd.DataFrame:
-    return df.sort_values(by='date', ascending=False).drop_duplicates(subset=['location'])
-
+from core.data.update_data import load_data_from_parquet, get_latest_data
 
 class SummaryService:
     """

@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from analysis.services.SummaryService import SummaryService
 from analysis.services.FactorCorrelationService import FactorCorrelationService
 from analysis.services.MortalityRatioService import MortalityRatioService
-
+from analysis.services.TransmissionRateService import TransmissionRateService
 
 class ForecastAPIView(APIView):
     def get(self, request):
@@ -155,3 +155,18 @@ class FactorCorrelationAPIView(APIView):
                 })
             except Exception as e:
                 return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class TransmissionRateAPIView(APIView):
+    def get(self, request):
+        try:
+            location = request.query_params.get('location')
+            if not location:
+                return Response({"error": "Location is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+            service = TransmissionRateService()
+            data = service.get_transmission_data(location)
+
+            return Response(data, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"Lỗi tại TransmissionRateAPIView: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

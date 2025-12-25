@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
-from analysis.services.FactorCorrelationService import load_data_from_parquet, get_latest_data
 
+from core.data.update_data import load_data_from_parquet, get_latest_data
 
 class MortalityRatioService:
     """
