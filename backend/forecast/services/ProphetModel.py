@@ -4,7 +4,7 @@ from pathlib import Path
 CLEANED_PARQUET = Path(__file__).parent.parent.parent / "covid_app" / "data" / "cleaned_covid_data.parquet"
 
 
-def predict_covid(location, start_date_str, forecast_days=30, stringency_value=None, metric='new_cases_smoothed'):
+def predict_covid(location, start_date_str, forecast_days=30, metric='new_cases_smoothed'):
 
     # đọc dữ liệu từ dữ liệu sạch
     df = pd.read_parquet(CLEANED_PARQUET)
@@ -19,8 +19,8 @@ def predict_covid(location, start_date_str, forecast_days=30, stringency_value=N
 
     # 3 chuẩn bị file cho prophet độc
     # Chuẩn bị bảng cho Prophet
-    df_prophet = train_df[['date', metric , 'stringency_index']].copy()
-    df_prophet.columns = ['ds', 'y', 'stringency']
+    df_prophet = train_df[['date', metric]].copy()
+    df_prophet.columns = ['ds', 'y']
 
     # 4 khởi tạo mô hình
     model = Prophet(
@@ -30,8 +30,7 @@ def predict_covid(location, start_date_str, forecast_days=30, stringency_value=N
         yearly_seasonality=False
     )
 
-    # thêm biến phụ trợ
-    model.add_regressor('stringency')
+
 
     # 5. huan luyen mo hinh
     model.fit(df_prophet)
@@ -40,12 +39,6 @@ def predict_covid(location, start_date_str, forecast_days=30, stringency_value=N
     # start = ngay nguoi dung chon - periods là so luong ngay du bao
     future_dates = pd.date_range(start=selected_date, periods=forecast_days)
     future = pd.DataFrame({'ds': future_dates})
-
-    # Quan trọng: Điền giá trị phong tỏa cho tương lai
-    # Nếu người dùng không nhập, lấy giá trị cuối cùng trong quá khứ
-    if stringency_value is None:
-        stringency_value = train_df['stringency_index'].iloc[-1]
-    future['stringency'] = stringency_value
 
     # 7. Dự báo
     forecast = model.predict(future)
@@ -57,8 +50,3 @@ def predict_covid(location, start_date_str, forecast_days=30, stringency_value=N
 
     return result
 
-
-if __name__ == "__main__":
-    print("Đang du hành thời gian về 01/01/2022...")
-    res = predict_covid('Vietnam', '2021-10-1', forecast_days=30, stringency_value=80)
-    print(res)

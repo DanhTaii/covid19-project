@@ -16,7 +16,9 @@ def preprocess_and_save():
     print("Bắt đầu preprocessing...")
 
     df = pd.read_csv(RAW_FILE)
+    # loại bỏ dòng dữ liệu của quốc gia đó trùng lập
     df = df.drop_duplicates(subset=['location', 'date'])
+    # chuyển đổi dữ liệu date sang datetime
     df['date'] = pd.to_datetime(df['date'])
     # sap xep time-seri cho mot quoc gia
     df = df.sort_values(['location', 'date'])
