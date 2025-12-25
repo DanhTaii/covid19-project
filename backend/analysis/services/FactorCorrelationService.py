@@ -2,23 +2,7 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 
-# Đường dẫn đến file Parquet đã làm sạch
-CLEANED_PARQUET = Path(__file__).parent.parent.parent / "core" / "data" / "cleaned_covid_data.parquet"
-
-
-def load_data_from_parquet() -> pd.DataFrame:
-    """Tải DataFrame đã làm sạch từ file Parquet."""
-    if not CLEANED_PARQUET.exists():
-        raise FileNotFoundError(
-            f"Lỗi: Không tìm thấy file đã làm sạch tại {CLEANED_PARQUET}. Vui lòng chạy preprocess.py trước.")
-    return pd.read_parquet(CLEANED_PARQUET)
-
-
-def get_latest_data(df: pd.DataFrame) -> pd.DataFrame:
-    """Lọc dữ liệu tích lũy cuối cùng (hàng mới nhất) cho mỗi quốc gia."""
-    # Giả định dữ liệu đã được làm sạch và sắp xếp theo ngày trong preprocess
-    return df.sort_values(by='date', ascending=False).drop_duplicates(subset=['location'])
-
+from core.data.update_data import load_data_from_parquet, get_latest_data
 
 class FactorCorrelationService:
     """

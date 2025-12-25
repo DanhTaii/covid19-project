@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import ForecastAPIView,FactorCorrelationAPIView,MortalityRatioAPIView,WorldMapAPIView, CountryOverviewAPIView
+from .views import ForecastAPIView, FactorCorrelationAPIView, MortalityRatioAPIView, TransmissionRateAPIView, \
+    WorldMapAPIView, CountryOverviewAPIView
 
 urlpatterns = [
     path('forecast/', ForecastAPIView.as_view(), name='forecast'),
@@ -9,8 +10,12 @@ urlpatterns = [
     # Frontend gọi: /api/analysis/mortality-ratio/
     path('mortality-ratio/', MortalityRatioAPIView.as_view(), name='mortality_ratio'),
 
+    # Insight 2: Mức độ lây lan
+    path('transmission-rate/', TransmissionRateAPIView.as_view(), name='transmission_rate'),
+
     # Insight 4: Tương quan Yếu tố Rủi ro
     path('factor-correlation/', FactorCorrelationAPIView.as_view(), name='factor_correlation'),
+
     # Insight 1: Tổng quan quốc gia
     path('country-overview/', CountryOverviewAPIView.as_view(), name='country_overview'),
 ]

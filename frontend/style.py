@@ -17,6 +17,11 @@ def set_custom_css():
     /* Đổi màu nền chính (main content) */
     .main .block-container {
         background-color: #f8fafc;
+        padding-top: 2rem
+    }
+    
+    .st-emotion-cache-zy6yx3 {
+        padding: 2rem !important;
     }
 
     /* Đổi màu tiêu đề */
@@ -25,7 +30,7 @@ def set_custom_css():
     }
 
     /* Ẩn header Streamlit mặc định */
-    #MainMenu {visibility: hidden;}
+    # MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     </style>
-    # """, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)

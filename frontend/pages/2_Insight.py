@@ -4,6 +4,7 @@ import plotly.express as px
 import pandas as pd
 import importlib.util
 from style import set_custom_css  # nếu tách file
+
 # GỌI CSS TRƯỚC
 set_custom_css()
 
@@ -105,8 +106,9 @@ selected_country = st.sidebar.selectbox(
 st.sidebar.info(f"Đang xem dữ liệu: **{selected_country}**")
 
 # ==================== TABS ====================
-tab_insight1, tab_insight3, tab_insight4 = st.tabs([
+tab_insight1, tab_insight2, tab_insight3, tab_insight4 = st.tabs([
     "📊 Insight 1: Tổng quan Quốc gia",
+    " Insight 2: Mức độ lây lan",
     "🗺️ Insight 3: Mức Độ Nghiêm Trọng",
     "🧬 Insight 4: Yếu Tố Rủi Ro"
 ])
@@ -142,6 +144,39 @@ with tab_insight1:
     else:
         st.warning(f"Không có dữ liệu cho {selected_country}")
 
+# ==============================================================================
+#                               INSIGHT 2: Transmission Rate
+# ==============================================================================
+
+with tab_insight2:
+    st.subheader(f"📈 Mức độ Lây lan tại: {selected_country}")
+
+    # 1. Gọi API lấy dữ liệu lịch sử lây lan
+    api_insight2_url = f"{API_BASE}/transmission-rate/"
+    params = {"location": selected_country}
+    res_data = fetch_data(api_insight2_url, params=params)
+
+    if res_data:
+        df_trend = pd.DataFrame(res_data)
+
+        # --- BIỂU ĐỒ ĐƯỜNG: Diễn biến ca mắc mới ---
+        if not df_trend.empty:
+            fig_line = px.line(
+                df_trend,
+                x='date',
+                y='new_cases_smoothed_per_million',
+                title=f"Tốc độ lây nhiễm trên 1 triệu dân",
+                template="plotly_white"
+            )
+
+            fig_line.update_traces(line_color='#ff4b4b')
+            st.plotly_chart(fig_line, use_container_width=True)
+            st.info(
+                "💡 **Ghi chú:** Chỉ số 'Smooth' là trung bình trượt 7 ngày để giảm nhiễu dữ liệu do báo cáo chậm vào cuối tuần.")
+        else:
+            st.warning(f"Không tìm thấy dữ liệu xu hướng cho {selected_country}")
+    else:
+        st.warning(f"Không có dữ liệu lây lan cho {selected_country}")
 
 # ==============================================================================
 #                               INSIGHT 3 LOGIC

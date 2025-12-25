@@ -1,6 +1,7 @@
 import urllib.request
 from pathlib import Path
 import socket
+import pandas as pd
 
 URL = "https://covid.ourworldindata.org/data/owid-covid-data.csv"
 RAW_FILE = Path(__file__).parent / "owid-covid-data.csv"
@@ -28,6 +29,20 @@ def download_latest():
             exit(1)
         else:
             print("Tiếp tục dùng file cũ để preprocessing...")
+
+# Đường dẫn chung
+CLEANED_PARQUET = Path(__file__).parent.parent.parent / "core" / "data" / "cleaned_covid_data.parquet"
+
+
+def load_data_from_parquet() -> pd.DataFrame:
+    if not CLEANED_PARQUET.exists():
+        raise FileNotFoundError(f"Lỗi: Không tìm thấy file {CLEANED_PARQUET}. Vui lòng chạy preprocess.py trước.")
+    return pd.read_parquet(CLEANED_PARQUET)
+
+
+def get_latest_data(df: pd.DataFrame) -> pd.DataFrame:
+    return df.sort_values(by='date', ascending=False).drop_duplicates(subset=['location'])
+
 
 if __name__ == "__main__":
     download_latest()
