@@ -41,8 +41,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ==================== CẤU HÌNH API ====================
-API_BASE = "http://localhost:8000/api/analysis"
+# ==================== CẤU HÌNH API ENDPOINTS CHÍNH ====================
+API_BASE = "http://localhost:8000/api/forecast"
 
 
 # ==================== HÀM GỌI API ====================
