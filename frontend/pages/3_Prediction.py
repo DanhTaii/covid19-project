@@ -71,15 +71,21 @@ if predict_btn:
         if json_res and "predictions" in json_res:
 
             mape = json_res['metadata'].get('mape')
+            mae = json_res['metadata'].get('mae')
 
             # Hiển thị đánh giá mô hình
             st.markdown("### 📊 Đánh giá độ chính xác")
-            if mape is not None:
-                # Chọn màu sắc dựa trên độ lỗi
-                color = "green" if mape < 10 else "orange" if mape < 20 else "red"
-                st.markdown(
-                    f"Sai số trung bình (MAPE): <span style='color:{color}; font-size:24px; font-weight:bold;'>{mape:.2f}%</span>",
-                    unsafe_allow_html=True)
+            col_m1, col_m2 = st.columns(2)
+            if mape is not None and mae is not None:
+                with col_m1:
+                    color = "green" if mape < 10 else "orange" if mape < 20 else "red"
+                    st.markdown(f"**MAPE (Tỷ lệ sai số):**")
+                    st.markdown(f"<h2 style='color:{color};'>{mape:.2f}%</h2>", unsafe_allow_html=True)
+
+                with col_m2:
+                    # MAE không có màu cố định vì tùy quy mô quốc gia, nhưng hiện số để đối chiếu
+                    st.markdown(f"**MAE (Sai số trung bình):**")
+                    st.markdown(f"<h2>{mae:,.0f} ca</h2>", unsafe_allow_html=True)
 
                 # Giải thích ý nghĩa
                 if mape < 10:
@@ -112,8 +118,8 @@ if predict_btn:
             with c2:
                 if not actual_data.empty:
                     last_actual = int(actual_data['y_actual'].iloc[-1])
-                    diff = last_actual - int(actual_data['yhat'].iloc[-1])
-                    st.metric("Thực tế cuối kỳ", f"{last_actual:,} ca", f"{diff:+} so với dự báo")
+                    # Thay vì chỉ tính diff ngày cuối, ta có thể ghi chú thêm về sai số trung bình
+                    st.metric("Thực tế cuối kỳ", f"{last_actual:,} ca", f"Sai số TB: ±{mae:,.0f}")
                 else:
                     st.metric("Thực tế cuối kỳ", "N/A", "Không có dữ liệu")
 

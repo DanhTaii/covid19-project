@@ -21,7 +21,7 @@ class ProphetAnalyticsView(APIView):
             forecast_days = int(request.query_params.get('days', 30))
 
             # Gọi service lấy cả dataframe và mape
-            df_forecast, mape_score = predict_covid(
+            df_forecast, mape_score ,mae_score= predict_covid(
                 location=location,
                 start_date_str=start_date,
                 forecast_days=forecast_days
@@ -36,12 +36,19 @@ class ProphetAnalyticsView(APIView):
                 "metadata": {
                     "country": location,
                     "mape": mape_score,
+                    "mae": mae_score,
                     "model_type": "Prophet Optimized (0.1)"
                 },
                 "predictions": records
             }, status=status.HTTP_200_OK)
 
+
         except Exception as e:
+
+            import traceback
+
+            traceback.print_exc()  # Dòng này sẽ in chi tiết lỗi "màu đỏ" ra terminal cho bạn
+
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class ForecastAPIView(APIView):
