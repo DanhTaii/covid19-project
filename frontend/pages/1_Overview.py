@@ -33,10 +33,10 @@ mode_key = "cases" if mode == "Total Cases" else "deaths"
 
 def load_world_map_data(mode: str):
     try:
-        params = {"mode": mode, "cache_buster": int(time.time() * 1000)}  # Thêm *1000 để khác nhanh hơn
+        params = {"mode": mode, "cache_buster": int(time.time() * 1000)}
         response = requests.get(DJANGO_API, params=params, timeout=15)
         response.raise_for_status()
-        print("DEBUG RESPONSE:", response.json())  # Thêm dòng này tạm để xem console Streamlit
+        print("DEBUG RESPONSE:", response.json())
         return response.json()
     except Exception as e:
         st.error(f"Lỗi: {e}")
@@ -80,54 +80,150 @@ st.subheader("📊 Xu hướng toàn cầu theo thời gian")
 
 trend_mode = st.radio(
     "Chọn loại dữ liệu hiển thị:",
-    options=["Total Cases", "Total Deaths"],
+    options=[
+        "Total Cases",
+        "Total Deaths",
+        "Death Rate (%)",
+        "Infection Rate (%)"
+    ],
     index=0,
-    horizontal=True
+    horizontal=True,
+    key="trend_mode"
 )
 
+# ==================== DATAFRAME GỐC ====================
 df_trends = pd.DataFrame({
     "Date": data["global_trends"]["dates"],
     "Total Cases": data["global_trends"]["cases"],
     "Total Deaths": data["global_trends"]["deaths"]
 })
 
-y_col = "Total Cases" if trend_mode == "Total Cases" else "Total Deaths"
+# ==================== XỬ LÝ THEO MODE ====================
+if trend_mode == "Death Rate (%)":
+    df_trends["Death Rate (%)"] = (
+        df_trends["Total Deaths"] / df_trends["Total Cases"]
+    ) * 100
 
-fig_trend = px.line(df_trends, x="Date", y=y_col, title=f"Xu hướng {trend_mode.lower()} toàn cầu")
-fig_trend.update_layout(height=450, title_x=0.5, margin={"r": 0, "t": 60, "l": 0, "b": 0})
-st.plotly_chart(fig_trend, use_container_width=True)
+    df_trends = df_trends.replace([float("inf"), -float("inf")], None)
+    y_col = "Death Rate (%)"
 
-# ==================== TOP 10 ====================
-st.markdown("---")
-st.subheader("🏆 Top 10 quốc gia")
+elif trend_mode == "Infection Rate (%)":
+    # population CHƯA CÓ → báo rõ ràng
+    st.warning("❗ Infection Rate cần dữ liệu population (hiện API chưa cung cấp).")
+    st.stop()
 
-top_mode = st.radio(
-    "Chọn dữ liệu hiển thị:",
-    options=["Total Cases", "Total Deaths"],
-    index=0,
-    horizontal=True
+else:
+    y_col = trend_mode
+
+# ==================== VẼ BIỂU ĐỒ ====================
+fig_trend = px.line(
+    df_trends,
+    x="Date",
+    y=y_col,
+    title=f"Xu hướng {trend_mode.lower()} toàn cầu"
 )
 
-if "top10" in data and data["top10"]:
-    top10 = data["top10"]
-    countries = top10.get("countries", [])
-    values = top10.get("values", [])
+# Format trục Y cho %
+if "%" in trend_mode:
+    fig_trend.update_yaxes(ticksuffix="%")
 
-    if len(countries) > 0 and len(values) > 0 and len(countries) == len(values):
-        df_top10 = pd.DataFrame({"Country": countries, "Value": values})
+fig_trend.update_layout(
+    height=450,
+    title_x=0.5,
+    title_font_size=22,
+    margin={"r": 0, "t": 60, "l": 0, "b": 0},
+    xaxis_title="Thời gian",
+    yaxis_title=trend_mode
+)
 
-        fig_top10 = px.bar(
-            df_top10,
-            x="Country",
-            y="Value",
-            title=top10.get("title", "Top 10 Countries"),
-            labels={"Value": top_mode},
-            text="Value"
-        )
-        fig_top10.update_traces(texttemplate="%{text:,}", textposition="outside")
-        fig_top10.update_layout(height=500, title_x=0.5, margin={"r":0,"t":60,"l":0,"b":0})
-        st.plotly_chart(fig_top10, use_container_width=True)
-    else:
-        st.warning("Dữ liệu top 10 không đầy đủ hoặc rỗng.")
+st.plotly_chart(fig_trend, use_container_width=True)
+
+# ==================== TOP 10 QUỐC GIA (CHỈ COUNTRY THẬT) ====================
+st.markdown("---")
+st.subheader("🏆 Top 10 quốc gia bị ảnh hưởng nặng nhất")
+
+top_mode = st.radio(
+    "Chọn loại dữ liệu:",
+    options=["Total Cases", "Total Deaths"],
+    index=0,
+    horizontal=True,
+    key="top10_mode"
+)
+
+# ==================== LOAD DATA THEO MODE ====================
+if top_mode == "Total Deaths":
+    top_data = load_world_map_data("deaths")
 else:
-    st.warning("Backend chưa trả key 'top10' – có thể đang dùng code cũ hoặc lỗi đọc file.")
+    top_data = data  # dùng lại data đã load cho cases
+
+# ==================== TẠO DATAFRAME ====================
+df_all = pd.DataFrame({
+    "Country": top_data["locations"],
+    "Value": top_data["values"]
+})
+
+# ==================== LỌC BỎ REGION / GROUP ====================
+EXCLUDE_KEYWORDS = [
+    "income",
+    "world",
+    "union",
+    "countries",
+    "africa",
+    "europe",
+    "asia",
+    "america",
+    "oceania"
+]
+
+df_all = df_all[
+    ~df_all["Country"].str.contains(
+        "|".join(EXCLUDE_KEYWORDS),
+        case=False,
+        na=False
+    )
+]
+
+# ==================== LẤY TOP 10 ====================
+df_top10 = (
+    df_all
+    .dropna()
+    .sort_values("Value", ascending=False)
+    .head(10)
+)
+
+# ==================== VẼ BIỂU ĐỒ ====================
+if not df_top10.empty:
+    fig_top10 = px.bar(
+        df_top10,
+        x="Country",
+        y="Value",
+        text="Value",
+        title=f"Top 10 quốc gia theo {top_mode.lower()}",
+        labels={"Value": top_mode},
+        color="Value",
+        color_continuous_scale="Reds" if top_mode == "Total Cases" else "Blues"
+    )
+
+    fig_top10.update_traces(
+        texttemplate="%{text:,}",
+        textposition="outside"
+    )
+
+    fig_top10.update_layout(
+        height=520,
+        title_x=0.5,
+        title_font_size=22,
+        margin={"r": 0, "t": 60, "l": 0, "b": 0},
+        xaxis_tickangle=-30,
+        yaxis_title=top_mode
+    )
+
+    st.plotly_chart(fig_top10, use_container_width=True)
+else:
+    st.warning("Không có dữ liệu Top 10.")
+
+
+
+
+
+
