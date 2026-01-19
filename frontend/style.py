@@ -11,14 +11,15 @@ def set_custom_css():
 
     /* ===== TẤT CẢ CHỮ TRONG SIDEBAR THÀNH TRẮNG ===== */
     [data-testid="stSidebar"] * {
-        color: white !important;
+        color: white ;
     }
+
 
     /* Đổi màu nền chính (main content) */
     .main .block-container {
         background-color: #f8fafc;
         padding-top: 2rem
-    }
+    }   
     
     .st-emotion-cache-zy6yx3 {
         padding: 2rem !important;

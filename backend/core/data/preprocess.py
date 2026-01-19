@@ -29,6 +29,13 @@ def preprocess_and_save():
                'Africa', 'North America', 'South America', 'Oceania']
     df = df[~df['location'].isin(exclude)]
 
+    if 'stringency_index' in df.columns:
+        print("Đang tạo chỉ số nới lỏng (Relaxation Index)...")
+        # Điền các giá trị trống bằng giá trị trước đó (ffill) hoặc 0 trước khi tính toán
+        df['stringency_index'] = df.groupby('location')['stringency_index'].ffill().fillna(0)
+        df['relaxation_index'] = 100 - df['stringency_index']
+    else:
+        print("Cảnh báo: Không tìm thấy cột stringency_index trong dữ liệu gốc.")
     # Forward fill + fillna 0
     # Ép các giá trị âm về 0 (đôi khi dữ liệu gốc có số âm do hiệu chỉnh)
     for col in ['new_cases', 'new_deaths']:
