@@ -3,21 +3,46 @@ from django.shortcuts import render
 # Create your views here.
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
-class ForecastAPIView(APIView):
-    def get(self, request):
-        return Response({
-            "country": "Vietnam",
-            "predicted_cases": [100, 120, 150, 180]
-        })
-
 from django.http import JsonResponse
-from .services.engine import rag_chain # Import chain từ engine của bạn
+from .services.engine import rag_chain  # Import chain từ engine của bạn
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework import status
 
-def ask_chatbot(request):
-    if request.method == 'POST':
-        user_query = request.POST.get('query')
-        # Gọi chain đã xây dựng
-        response = rag_chain.invoke(user_query)
-        return JsonResponse({'answer': response})
-    return JsonResponse({'error': 'Invalid request'}, status=400)
+class ChatbotAPIView(APIView):
+    def post(self, request):
+        try:
+            # Trong APIView, dữ liệu JSON gửi lên nằm trong request.data
+            user_query = request.data.get('question')
+
+            if not user_query:
+                return Response({"error": "Bạn chưa nhập câu hỏi"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Gọi "bộ não" RAG xử lý
+            response = rag_chain.invoke(user_query)
+
+            # Trả về kết quả dưới dạng JSON theo chuẩn DRF
+            return Response({
+                "answer": response
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({
+                "error": f"Lỗi hệ thống: {str(e)}"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def get(self, request):
+        return Response({"message": "API Chatbot đang sẵn sàng. Hãy dùng phương thức POST để đặt câu hỏi!"})
+
+
+# @csrf_exempt
+# def ask_chatbot(request):
+#     if request.method == 'POST':
+#         try:
+#             user_query = request.POST.get('query')
+#             # Gọi chain đã xây dựng
+#             response = rag_chain.invoke(user_query)
+#
+#             return JsonResponse({'answer': response})
+#         except Exception as e:
+#             return JsonResponse({'error': 'Invalid request'}, status=500)
+#     return JsonResponse({"message": "API Chatbot đang chạy!"})
