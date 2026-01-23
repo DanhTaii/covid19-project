@@ -5,12 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 import pandas as pd
 from .services.ProphetModel import predict_covid
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-import pandas as pd
-from .services.ProphetModel import predict_covid
+from .services.ArimaModel import predict_covid_arima
 
 
 class ProphetAnalyticsView(APIView):
@@ -60,6 +55,43 @@ class ProphetAnalyticsView(APIView):
                 "predictions": records
             }, status=status.HTTP_200_OK)
 
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({
+                "error": str(e),
+                "detail": "Vui lòng kiểm tra lại tên quốc gia hoặc định dạng ngày tháng."
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ArimaAnalyticsView(APIView):
+    def get(self, request):
+        location = request.query_params.get('location', 'Vietnam')
+        start_date = request.query_params.get('start_date', '2022-01-01')
+        user_stringency = request.query_params.get('stringency_level', None)
+        try:
+            forecast_days = int(request.query_params.get('days', 30))
+            if user_stringency is not None:
+                user_stringency = float(user_stringency)
+            df_forecast, mape_score, mae_score, actual_stringency = predict_covid_arima(
+                location=location,
+                start_date_str=start_date,
+                forecast_days=forecast_days,
+                user_stringency=user_stringency
+            )
+            df_forecast['ds'] = df_forecast['ds'].dt.strftime('%Y-%m-%d')
+            df_forecast = df_forecast.replace({np.nan: None})
+            records = df_forecast.to_dict(orient='records')
+            return Response({
+                "metadata": {
+                    "country": location,
+                    "mape": mape_score,
+                    "mae": mae_score,
+                    "applied_stringency": user_stringency if user_stringency is not None else "Actual",
+                    "actual_stringency": actual_stringency, "model_type": "ARIMA (2,1,2)"
+                },
+                "predictions": records
+            }, status=status.HTTP_200_OK)
         except Exception as e:
             import traceback
             traceback.print_exc()
