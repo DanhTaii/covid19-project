@@ -7,18 +7,11 @@ from click import prompt
 from style import set_custom_css
 import time
 
+set_custom_css()
+
 st.title("🤖 Covid-19 Assistant")
 
 API_BASE = "http://localhost:8000/api/chatbot/rag/"
-
-# # Khởi tạo lịch sử tin nhắn nếu chưa có
-# if "messages" not in st.session_state:
-#     st.session_state.messages = []
-#
-# # Hiển thị lại các tin nhắn cũ trong lịch sử
-# for message in st.session_state.messages:
-#     with st.chat_message(message["role"]):
-#         st.markdown(message["content"])
 
 @st.cache_data(ttl= 3600, show_spinner= FALSE )
 def fetch_data(url, params = None):

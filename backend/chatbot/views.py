@@ -32,17 +32,3 @@ class ChatbotAPIView(APIView):
 
     def get(self, request):
         return Response({"message": "API Chatbot đang sẵn sàng. Hãy dùng phương thức POST để đặt câu hỏi!"})
-
-
-# @csrf_exempt
-# def ask_chatbot(request):
-#     if request.method == 'POST':
-#         try:
-#             user_query = request.POST.get('query')
-#             # Gọi chain đã xây dựng
-#             response = rag_chain.invoke(user_query)
-#
-#             return JsonResponse({'answer': response})
-#         except Exception as e:
-#             return JsonResponse({'error': 'Invalid request'}, status=500)
-#     return JsonResponse({"message": "API Chatbot đang chạy!"})

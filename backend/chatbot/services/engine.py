@@ -67,20 +67,26 @@ retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
 chat_llm = ChatHuggingFace(llm=llm_endpoint)
 
 # Gán role cho LLM và bắt LLM chỉ trả lời trong context không bịa
-template = """ Bạn là trợ lý ảo Covid-19. Trả lời câu hỏi dựa trên ngữ cảnh sau:
+template = """ Bạn là trợ lý ảo chuyên gia về dịch bệnh Covid-19 tại Việt Nam.
+BẮT BUỘC: Mọi câu trả lời phải được viết bằng TIẾNG VIỆT hoàn toàn. Không được sử dụng ngôn ngữ khác.
+
+Nhiệm vụ của bạn:
+1. Dựa vào "Ngữ cảnh" (Context) để trả lời về dữ liệu lịch sử.
+2. Nếu không có dữ liệu dự báo đi kèm, hãy giải thích nhẹ nhàng bằng tiếng Việt rằng bạn không có số liệu cho ngày đó.
+
+Ngữ cảnh (Dữ liệu quá khứ):
 {context}
 
-Câu hỏi: {question}
-Trả lời:"""
+Câu hỏi (Bao gồm yêu cầu và số liệu dự báo nếu có):
+{question}
+
+Trả lời bằng Tiếng Việt:"""
 
 # Dùng cho template dạng String thành ChatPromptTemplate
 prompt = ChatPromptTemplate.from_template(template)
-# format_docs_runnable = RunnableLambda(format_doc)
-
 # LLM không hiểu List chỉ hiểu văn bản nên phải biến nó thành String
 def format_doc(docs):
     return "\n\n".join(doc.page_content for doc in docs)
-
 
 rag_chain = (
     {
