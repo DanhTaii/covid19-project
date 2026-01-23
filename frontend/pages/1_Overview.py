@@ -44,7 +44,7 @@ def load_world_map_data(mode: str):
 
 data = load_world_map_data(mode_key)
 
-# ==================== VẼ BẢN ĐỒ ====================
+# VẼ BẢN ĐỒ
 df_map = pd.DataFrame({
     "Country Name": data["locations"],
     "Value": data["values"]
@@ -74,7 +74,7 @@ fig.update_geos(
 fig.update_layout(height=700, margin={"r": 0, "t": 80, "l": 0, "b": 0}, title_x=0.5, title_font_size=24)
 st.plotly_chart(fig, use_container_width=True)
 
-# ==================== BIỂU ĐỒ ĐƯỜNG ====================
+# BIỂU ĐỒ ĐƯỜNG
 st.markdown("---")
 st.subheader("📊 Xu hướng toàn cầu theo thời gian")
 
@@ -91,14 +91,14 @@ trend_mode = st.radio(
     key="trend_mode"
 )
 
-# ==================== DATAFRAME GỐC ====================
+# DATAFRAME GỐC
 df_trends = pd.DataFrame({
     "Date": data["global_trends"]["dates"],
     "Total Cases": data["global_trends"]["cases"],
     "Total Deaths": data["global_trends"]["deaths"]
 })
 
-# ==================== XỬ LÝ THEO MODE ====================
+# XỬ LÝ THEO MODE
 if trend_mode == "Death Rate (%)":
     df_trends["Death Rate (%)"] = (
         df_trends["Total Deaths"] / df_trends["Total Cases"]
@@ -115,7 +115,7 @@ elif trend_mode == "Infection Rate (%)":
 else:
     y_col = trend_mode
 
-# ==================== VẼ BIỂU ĐỒ ====================
+# VẼ BIỂU ĐỒ
 fig_trend = px.line(
     df_trends,
     x="Date",
@@ -138,7 +138,7 @@ fig_trend.update_layout(
 
 st.plotly_chart(fig_trend, use_container_width=True)
 
-# ==================== TOP 10 QUỐC GIA (CHỈ COUNTRY THẬT) ====================
+# TOP 10 QUỐC GIA
 st.markdown("---")
 st.subheader("🏆 Top 10 quốc gia bị ảnh hưởng nặng nhất")
 
@@ -150,19 +150,19 @@ top_mode = st.radio(
     key="top10_mode"
 )
 
-# ==================== LOAD DATA THEO MODE ====================
+# LOAD DATA THEO MODE
 if top_mode == "Total Deaths":
     top_data = load_world_map_data("deaths")
 else:
     top_data = data  # dùng lại data đã load cho cases
 
-# ==================== TẠO DATAFRAME ====================
+# TẠO DATAFRAME
 df_all = pd.DataFrame({
     "Country": top_data["locations"],
     "Value": top_data["values"]
 })
 
-# ==================== LỌC BỎ REGION / GROUP ====================
+# LỌC BỎ REGION/GROUP
 EXCLUDE_KEYWORDS = [
     "income",
     "world",
@@ -183,7 +183,7 @@ df_all = df_all[
     )
 ]
 
-# ==================== LẤY TOP 10 ====================
+# LẤY TOP 10
 df_top10 = (
     df_all
     .dropna()
@@ -191,7 +191,7 @@ df_top10 = (
     .head(10)
 )
 
-# ==================== VẼ BIỂU ĐỒ ====================
+# VẼ BIỂU ĐỒ
 if not df_top10.empty:
     fig_top10 = px.bar(
         df_top10,

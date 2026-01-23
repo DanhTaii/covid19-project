@@ -8,17 +8,17 @@ from style import set_custom_css  # nếu tách file
 # GỌI CSS TRƯỚC
 set_custom_css()
 
-# --- CẤU HÌNH TRANG ---
+# CẤU HÌNH TRANG
 st.set_page_config(
     page_title="Phân Tích Chuyên Sâu COVID-19",
     page_icon="🔎",
     layout="wide"
 )
 
-# --- KIỂM TRA THƯ VIỆN BỔ TRỢ ---
+# KIỂM TRA THƯ VIỆN BỔ TRỢ
 has_statsmodels = importlib.util.find_spec("statsmodels") is not None
 
-# --- CSS TÙY CHỈNH ---
+# CSS TÙY CHỈNH
 st.markdown("""
 <style>
     .metric-card {
@@ -41,11 +41,11 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ==================== CẤU HÌNH API ENDPOINTS CHÍNH ====================
+# CẤU HÌNH API ENDPOINTS CHÍNH
 API_BASE = "http://localhost:8000/api/analysis"
 
 
-# ==================== HÀM GỌI API ====================
+# HÀM GỌI API
 @st.cache_data(ttl=3600, show_spinner=False)
 def fetch_data(url, params=None):
     try:
@@ -81,7 +81,7 @@ def get_all_locations():
     return countries
 
 
-# ==================== GIAO DIỆN CHÍNH ====================
+# GIAO DIỆN CHÍNH
 
 st.title("🔎 Phân Tích Chuyên Sâu: Nghiêm Trọng & Nguyên Nhân")
 st.markdown("---")
@@ -105,7 +105,7 @@ selected_country = st.sidebar.selectbox(
 
 st.sidebar.info(f"Đang xem dữ liệu: **{selected_country}**")
 
-# ==================== TABS ====================
+# TABS
 tab_insight1, tab_insight2, tab_insight3, tab_insight4 = st.tabs([
     "📊 Insight 1: Tổng quan Quốc gia",
     " Insight 2: Mức độ lây lan",
@@ -124,7 +124,7 @@ with tab_insight1:
     res_data = fetch_data(api_insight1_url, params=params)
 
     if res_data and 'data' in res_data:
-        summary = res_data['data']  # <--- THÊM DÒNG NÀY
+        summary = res_data['data']
     elif res_data:  # nếu backend trả thẳng dict (không bọc data)
         summary = res_data
     else:
@@ -159,7 +159,7 @@ with tab_insight2:
     if res_data:
         df_trend = pd.DataFrame(res_data)
 
-        # --- BIỂU ĐỒ ĐƯỜNG: Diễn biến ca mắc mới ---
+        # BIỂU ĐỒ ĐƯỜNG: Diễn biến ca mắc mới
         if not df_trend.empty:
             fig_line = px.line(
                 df_trend,
