@@ -13,48 +13,26 @@ from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 # Dùng cho khởi tạo model LLM trực tuyến, số hóa văn bản
 from langchain_huggingface import HuggingFaceEndpoint, HuggingFaceEmbeddings, ChatHuggingFace
 # Dùng cho văn bản hóa
-from langchain_core.documents import Document
 from dotenv import load_dotenv
 from pathlib import Path
 
 # Lấy ra file trong thư mục hiện tại
 current_dir = os.path.dirname(os.path.abspath(__file__))
-# Lùi về trước đó 2 thư mục
-backend_dir = os.path.abspath(os.path.join(current_dir, "../../"))
-
-base_dir = Path(__file__).resolve().parent.parent.parent.parent
-env_path = base_dir / '.env'
+load_path = os.path.join(current_dir, "..", "data", "faiss_covid_index")
+# Lùi về trước đó 3 thư mục
+root_dir = os.path.abspath(os.path.join(current_dir, "../../../"))
 
 # Thêm vào hệ thống tìm kiếm của Python
-if backend_dir not in sys.path:
-    sys.path.append(backend_dir)
+if root_dir not in sys.path:
+    sys.path.append(root_dir)
 
-from core.data.update_data import load_data_from_parquet
 
-# Lấy dữ liệu từ file đã được preprocessing
-df = load_data_from_parquet()
-df_small = df[['location', 'date' ,'new_cases', 'new_deaths']].tail(50)
-
+base_dir = Path(root_dir)
 # Lấy API của LLM về để sử dụng trực tuyến
+env_path = base_dir / '.env'
 load_dotenv(dotenv_path=env_path)
 hf_token = os.getenv("HF_TOKEN")
 os.environ["HUGGINGFACEHUB_API_TOKEN"] = hf_token
-
-# Chuyển đổi dữ liệu thành văn bản
-docs = [
-    Document(
-        # Tạo ra 1 câu tiếng việt hoàn chỉnh
-        page_content=f"Tại {r['location']} ngày {r['date']}, ghi nhận {r['new_cases']} ca nhiễm và {r['new_deaths']} ca tử vọng",
-        # Lưu dữ liệu như dạng JSON
-        metadata=r.to_dict()
-    )
-    # Duyệt qua từng dòng trong DataFrame
-    for _, r in df_small.iterrows()
-]
-
-# LLM không hiểu List chỉ hiểu văn bản nên phải biến nó thành String
-def format_doc(docs):
-    return "\n\n".join(doc.page_content for doc in docs)
 
 # Khởi tạo mô hình ngôn ngữ lớn (LLM)
 llm_endpoint = HuggingFaceEndpoint(
@@ -70,13 +48,14 @@ llm_endpoint = HuggingFaceEndpoint(
     huggingfacehub_api_token=os.environ["HUGGINGFACEHUB_API_TOKEN"]
 )
 
+# Load lại DB từ thư mục đã lưu
 # Khởi tạo mô hình embedding => Nhận văn bản và trả về vector số
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-# Lấy từng Document trong docs và dùng embeddings để embed page_content và lưu vào DB
-vectorstore = FAISS.from_documents(
-    documents=docs,
-    embedding=embeddings
+vectorstore = FAISS.load_local(
+    load_path,
+    embeddings,
+    allow_dangerous_deserialization=True
 )
 
 # Là bộ tìm kiếm tài liệu liên quan
@@ -97,6 +76,11 @@ Trả lời:"""
 # Dùng cho template dạng String thành ChatPromptTemplate
 prompt = ChatPromptTemplate.from_template(template)
 # format_docs_runnable = RunnableLambda(format_doc)
+
+# LLM không hiểu List chỉ hiểu văn bản nên phải biến nó thành String
+def format_doc(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
+
 
 rag_chain = (
     {
